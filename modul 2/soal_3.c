@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
-
+int end_of_file=0;
 void *thread1(void* args){
    char* nama_file=(char*)args; 
    char karakter;
@@ -10,8 +10,11 @@ void *thread1(void* args){
    in=fopen(nama_file,"r");
    out=fopen("salinan.txt","w");
    while(fscanf(in,"%c",&karakter)!=EOF){
-   	fprintf(out,"%c",karakter);
+   	printf("Thread 1-->%c\n",karakter);
+	fprintf(out,"%c",karakter);
    }
+   fprintf(out,"#");
+   //end_of_file=1;
    fclose(in);
    fclose(out);
 }
@@ -22,7 +25,10 @@ void *thread2(void* args){
    
   in=fopen("salinan.txt","r");
   out=fopen("salinan2.txt","w");
-  while(fscanf(in,"%c",&karakter)!=EOF){
+  while(1){
+	fscanf(in,"%c",&karakter);
+        if (karakter=='#') break;
+	printf("Thread 2--> %c\n",karakter);
 	fprintf(out,"%c",karakter);
   }
   fclose(in);
@@ -34,8 +40,8 @@ int main(){
    char nama_file[100];
    scanf("%s",nama_file); 
    pthread_create(&t1,NULL,thread1,(void*) &nama_file[0]);
-   pthread_join(t1,NULL);
    pthread_create(&t2,NULL,thread2,NULL);
+   pthread_join(t1,NULL);
    pthread_join(t2,NULL);
    pthread_exit(0);
 }
