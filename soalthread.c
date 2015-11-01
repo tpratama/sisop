@@ -14,10 +14,10 @@ void *run(void *args){
 
 void main(){
         pthread_t t1;
-	int input;
-while(input!=-1){
+	int input,i;
 	scanf("%d", &input);
-	pthread_create(&t1, NULL, run, (void*)&input);
-//        pthread_join(t1, NULL);
-}
+	for(i=0;i<input;i++){
+		pthread_create(&t1, NULL, run, (void*)&input);
+//        	pthread_join(t1, NULL);
+	}
 }
