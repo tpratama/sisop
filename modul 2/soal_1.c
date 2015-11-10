@@ -3,7 +3,9 @@
 #include <pthread.h>
 #include <string.h>
 #include <dirent.h>
-
+#include <errno.h>
+#include <sys/wait.h>
+#include <stdlib.h>
 //GLOBAL VARIABEL
 char cmd[1024],address[1024],*token;
 int sts;
@@ -48,19 +50,55 @@ int do_ls(char* token){
 
 }
 
+int do_all_command(char* cmd,char* token,int mode){
+	token=strtok(NULL," ");
+		
+	char* argument[100];
+	argument[0]=cmd;	
+	int now=1;
+	
+	while(token!=NULL){
+		argument[now]=token;
+		now++;
+		token=strtok(NULL," ");
+	}
+	argument[now]=NULL;
+	pid_t pid=fork();
+	if (pid==0) {
+	execvp(argument[0],argument);
+	exit(errno);	
+	}	
+	else{
+		if (mode==0) wait(0);
+	}
+
+}
+
+int do_signaling(){
+	printf("CTRL + D HIT");
+	pid_t pid=getpid();
+	kill(pid,SIGKILL);
+}
+
 int main(){
 
 	while(1){
+		memset(cmd,0,sizeof cmd);
 		//ambil working dir
 		getcwd(address,sizeof (address));
-		printf("theo@theo-lenovo-G40-70 %s : ",address);		
+		printf("theo@theo-lenovo-G40-70 %s $ ",address);		
 		gets(cmd);
-		//ambil command;
-		token=strtok(cmd," ");
-	
+		char* check=&cmd[0];
+		if (*check!=NULL) token=strtok(cmd," ");
+		else {
+			do_signaling();
+		}
 		//perintah cd
 		if (strcmp("cd",token)==0) do_cd(token);
 		//perintah ls
-		if (strcmp("ls",token)==0) do_ls(token);	
-	}
+		else if (strcmp("ls",token)==0) do_ls(token);	
+		//perintah selain diatas
+		else if (token!=NULL) do_all_command(token,token,0);
+	
+	}	
 }
