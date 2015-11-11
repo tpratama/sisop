@@ -94,13 +94,22 @@ char* temp;
 		char eol_check=cmd[strlen(cmd)-1];
 		//signaling CTRL+D
 		if (eol_check==0) do_signaling();
+		
 		char* ampersand=NULL;
 		int mode;
+		char *command_list[1024];
 		ampersand=strstr(cmd,"&");
 		temp=strtok(cmd,"&");
-			
+		int now=0,i;
 		while(temp!=NULL){
-			token=strtok(temp," ");
+			command_list[now]=temp;
+			now++;			
+			temp=strtok(NULL,"&");
+		}		
+		now-=1;
+		
+		for(i=0;i<=now;i++){
+			token=strtok(command_list[i]," ");
 
 			if (ampersand!=NULL) mode=1;
 			//perintah cd
@@ -108,12 +117,9 @@ char* temp;
 			//perintah ls
 			else if (strcmp("ls",token)==0) do_ls(token);	
 			//perintah selain diatas
-			else if (token!=NULL) do_all_command(token,token,mode);
+			else if (token!=NULL) do_all_command(token,command_list[i],mode);
 			
-			temp=strtok(NULL,"&");
-			printf("%s<----",temp);
-			ampersand=NULL;
-			ampersand=strstr(token,"&");
 		}
+		
 	}	
 }
