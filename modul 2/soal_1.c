@@ -56,7 +56,6 @@ int do_all_command(char* cmd,char* token,int mode){
 	char* argument[100];
 	argument[0]=cmd;	
 	int now=1;
-	
 	while(token!=NULL){
 		argument[now]=token;
 		now++;
@@ -65,22 +64,26 @@ int do_all_command(char* cmd,char* token,int mode){
 	argument[now]=NULL;
 	pid_t pid=fork();
 	if (pid==0) {
-	execvp(argument[0],argument);
-	exit(errno);	
+		int stat=execvp(argument[0],argument);
+		if (stat==-1) printf("Syntax Error\n");		
+		exit(errno);	
 	}	
 	else{
 		if (mode==0) wait(0);
+		else {
+			printf("PID : %d\n",(int)pid);		
+		}
 	}
 
 }
 
 int do_signaling(){
-	printf("CTRL + D HIT");
 	pid_t pid=getpid();
 	kill(pid,SIGKILL);
 }
 
 int main(){
+char* temp;
 
 	while(1){
 		memset(cmd,0,sizeof cmd);
@@ -88,17 +91,29 @@ int main(){
 		getcwd(address,sizeof (address));
 		printf("theo@theo-lenovo-G40-70 %s $ ",address);		
 		gets(cmd);
-		char* check=&cmd[0];
-		if (*check!=NULL) token=strtok(cmd," ");
-		else {
-			do_signaling();
+		char eol_check=cmd[strlen(cmd)-1];
+		//signaling CTRL+D
+		if (eol_check==0) do_signaling();
+		char* ampersand=NULL;
+		int mode;
+		ampersand=strstr(cmd,"&");
+		temp=strtok(cmd,"&");
+			
+		while(temp!=NULL){
+			token=strtok(temp," ");
+
+			if (ampersand!=NULL) mode=1;
+			//perintah cd
+			if (strcmp("cd",token)==0) do_cd(token);
+			//perintah ls
+			else if (strcmp("ls",token)==0) do_ls(token);	
+			//perintah selain diatas
+			else if (token!=NULL) do_all_command(token,token,mode);
+			
+			temp=strtok(NULL,"&");
+			printf("%s<----",temp);
+			ampersand=NULL;
+			ampersand=strstr(token,"&");
 		}
-		//perintah cd
-		if (strcmp("cd",token)==0) do_cd(token);
-		//perintah ls
-		else if (strcmp("ls",token)==0) do_ls(token);	
-		//perintah selain diatas
-		else if (token!=NULL) do_all_command(token,token,0);
-	
 	}	
 }
